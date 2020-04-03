@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 
 void main() => runApp(MyApp());
 
@@ -37,9 +39,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   borderRadius: new BorderRadius.circular(18.0),
                   side: BorderSide(color: Colors.black)
               ),
-              onPressed: _startNewLine,
+              onPressed: () =>  _startNewLine(this.context),
               child: Text(
                 'Start A Line',
                 style: TextStyle(fontSize: 30, color: Colors.white)
@@ -95,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   borderRadius: new BorderRadius.circular(18.0),
                   side: BorderSide(color: Colors.black)
               ),
-                onPressed: _joinNewLine,
+                onPressed: () => _joinNewLine(this.context),
               child: Text(
                 'Join A Line',
                   style: TextStyle(fontSize: 30, color: Colors.white)
@@ -108,7 +107,30 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _startNewLine() {
+
+}
+  Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
+    return ListTile(
+      title: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(document['firstname']),
+          ),
+          Expanded(
+            child: Text(document['lastname']),
+          ),
+          Expanded(
+            child: Text(document['username']),
+          ),
+          Expanded(
+            child: Text(document['password']),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startNewLine(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
@@ -134,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   RaisedButton(
                     color: Colors.green,
-                    onPressed: _showAccount,
+                    onPressed: () => _showAccount(context),
                     shape: RoundedRectangleBorder(
                       borderRadius: new BorderRadius.circular(18.0),
                       side: BorderSide(color: Colors.black)
@@ -165,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _joinNewLine() {
+  void _joinNewLine(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
@@ -173,24 +195,36 @@ class _MyHomePageState extends State<MyHomePage> {
             appBar: AppBar(
               title: Text('Join New Line'),
             ),
+            body: StreamBuilder(
+              stream: Firestore.instance.collection('namesnshit').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const Text('Loading...');
+                return ListView.builder(
+                  itemExtent: 80.0,
+                  itemCount: snapshot.data.documentss.length,
+                  itemBuilder: (context, index) =>
+                      _buildListItem(context, snapshot.data.documents[index]),
+                );
+              }
+            ),
           );
         }
       )
     );
   }
 
-  void _showAccount() {
+  void _showAccount(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return Scaffold(
             appBar: AppBar(
             title: Text('Account Page'),
-      )
-    );
-    }
+            )
+          );
+        }
       )
     );
   }
 
-}
+
